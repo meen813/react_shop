@@ -1,9 +1,8 @@
 import { useParams } from "react-router-dom";
 import React from "react";
-
-import { Form } from 'react-bootstrap';
-
-import { useEffect , useState } from "react";
+import { Form, Nav, Tab } from 'react-bootstrap';
+import { useContext, useEffect, useState } from "react";
+import { Context1 } from './../App.js'
 
 // // props로 컴포넌트 재활용
 // let YellowBtn = styled.button`
@@ -19,77 +18,141 @@ import { useEffect , useState } from "react";
 
 const Detail = (props) => {
 
+    let {stock} = useContext(Context1)
 
-
+    let[detailFade, setDetailFade] = useState('')
     let [count, setCount] = useState(0)
-    let {id} = useParams();
-    let foundProduct = props.shoes.find(function(x){
+    let { id } = useParams();
+    let foundProduct = props.shoes.find(function (x) {
         return x.id == id
     });
     let [alert, setAlert] = useState(true)
     let [num, setNum] = useState('')
     let [warning, setWarning] = useState(false)
-
+    let [tab, setTab] = useState(0)
 
     useEffect(()=>{
+        let timer = setTimeout(()=>{setDetailFade('detailEnd')}, 100);
+
+        return () => {
+            clearTimeout(timer);
+            setDetailFade('')
+        }
+        //빈인자를 두번째 인자로 넘겨주면  mount 시에만 실행, update 시에는 실행 X
+    }, [])
+
+
+    useEffect(() => {
         // mount, update시 여기 코드가 실행됨
         // useEffect 실행조건 넣을 수 있는 곳은 []
-        let a = setTimeout(()=>{ setAlert(false)}, 2000)
+        let a = setTimeout(() => { setAlert(false) }, 2000)
 
         // timer cleanup
-        return ()=>{
+        return () => {
             clearTimeout(a)
         }
     }, [])
 
-    useEffect(()=>{
-        if(num && /\D/.test(num)){
+    useEffect(() => {
+        if (num && /\D/.test(num)) {
             setWarning(true)
         } else {
             setWarning(false)
         }
-    }, [num]) 
+    }, [num])
 
     return (
-        <div className="container">
+        <div className={`start container ${detailFade}`} >
+            <div className="container">
 
-            {
-                alert == true
-                ?   <div className="alert alert-warning">
-                        50% Discount If You Buy Under 2 secs
-                    </div> 
-                    : null
-            }
-            {/* <button onClick={()=>{setCount(count+1)}}>btn</button> */}
+                {
+                    alert == true
+                        ? <div className="alert alert-warning">
+                            50% Discount If You Buy Under 2 secs
+                        </div>
+                        : null
+                }
+                {/* <button onClick={()=>{setCount(count+1)}}>btn</button> */}
 
-            <div className="row">
-                <div className="col-md-6">
-                    <img src={props.image[id]} width="100%" />
+                <div className="row">
+                    <div className="col-md-6 col-sm-12 d-flex flex-column justify-content-center align-items-center">
+                        <img src={props.image[id]} width="100%" />
+                    </div>
+                    <div className="col-md-6 col-sm-12 d-flex flex-column justify-content-center align-items-center">
+                        {
+                            warning == true
+                                ? <div className="alert alert-danger">
+                                    Must Be Numbers Only
+                                </div>
+                                : null
+                        }
+                        <input type="text" style={{ borderColor: 'red' }} onChange={(e) => setNum(e.target.value)} />
+                        <h4 className="pt-5">{foundProduct.title}</h4>
+                        <p>{foundProduct.content}</p>
+                        <p>{foundProduct.price}</p>
+                        <button className="btn btn-danger">Add to Cart</button>
+                        {/* 
+        <Box>                    
+            <YellowBtn bg = "blue">Button</YellowBtn> 
+            <YellowBtn bg = "orange">Button</YellowBtn> 
+        </Box> */}
+                    </div>
                 </div>
-                <div className="col-md-6">
-                    {
-                        warning == true
-                        ?   <div className="alert alert-danger">
-                                Must Be Numbers Only
-                            </div>
-                            : null
-                    }
-                    <input type="text" style={{borderColor: 'red'}} onChange={(e) => setNum(e.target.value)}/>
-                    <h4 className="pt-5">{foundProduct.title}</h4>
-                    <p>{foundProduct.content}</p>
-                    <p>{foundProduct.price}</p>
-                    <button className="btn btn-danger">Add to Cart</button>
-                    {/* 
-                    <Box>                    
-                        <YellowBtn bg = "blue">Button</YellowBtn> 
-                        <YellowBtn bg = "orange">Button</YellowBtn> 
-                    </Box> */}
-                </div>
+
+                <Nav variant="tabs" defaultActiveKey="link0">
+                    <Nav.Item>
+                        <Nav.Link eventKey="link0" onClick={() => { setTab(0) }}>
+                            option 1
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="link1" onClick={() => { setTab(1) }}>
+                            Option 2
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="link2" onClick={() => { setTab(2) }}>
+                            Option 3
+                        </Nav.Link>
+                    </Nav.Item>
+                </Nav>
+                <TabContent shoes={props.shoes} tab={tab}></TabContent>
+
             </div>
         </div>
-    )
-    // 
 
+    )
+}
+
+// using if statement
+// function TabContent(props){
+//     if(props.tab === 0) {
+//         return <div>1번째</div>;
+//     }else if(props.tab === 1) {
+//         return <div>2</div>;
+//     } else if(props.tab === 2) {
+//         return <div>3</div>;
+//     }
+// }   
+
+
+function TabContent({ tab, shoes}) {
+    let {stock} = useContext(Context1)
+    let [fade, setFade] = useState('')
+    useEffect(() => {
+        let a = setTimeout(() => { setFade('end') }, 100);
+
+        return () => {
+            clearTimeout(a)
+            setFade('')
+        }
+
+    }, [tab])
+
+    // instead of if statement...
+    return (<div className={`start ${fade}`}>
+        {[<div>{shoes[0].title}</div>, <div>{stock}</div>, <div>3</div>][tab]}
+    </div>)
 }
 
 
