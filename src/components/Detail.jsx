@@ -2,8 +2,9 @@ import { useParams } from "react-router-dom";
 import React from "react";
 import { Form, Nav, Tab } from 'react-bootstrap';
 import { useContext, useEffect, useState } from "react";
-import { Context1 } from './../App.js'
-
+import { Context1 } from './../App.js';
+import { addItem } from "./../store.js"
+import { useDispatch } from "react-redux";
 // // props로 컴포넌트 재활용
 // let YellowBtn = styled.button`
 //     background : ${props => props.bg};
@@ -18,9 +19,13 @@ import { Context1 } from './../App.js'
 
 const Detail = (props) => {
 
-    let {stock} = useContext(Context1)
+        const productId = window.location.pathname.split('/').pop(); // 현재 URL에서 마지막 부분을 추출하여 상품 id로 사용
+        const productName = window.location.pathname.split('/').slice(-2, -1)[0]; // 현재 URL에서 끝에서 두 번째 부분을 추출하여 상품 이름으로 사용
 
-    let[detailFade, setDetailFade] = useState('')
+    let dispatch = useDispatch()
+    let { stock } = useContext(Context1)
+
+    let [detailFade, setDetailFade] = useState('')
     let [count, setCount] = useState(0)
     let { id } = useParams();
     let foundProduct = props.shoes.find(function (x) {
@@ -31,8 +36,27 @@ const Detail = (props) => {
     let [warning, setWarning] = useState(false)
     let [tab, setTab] = useState(0)
 
-    useEffect(()=>{
-        let timer = setTimeout(()=>{setDetailFade('detailEnd')}, 100);
+    useEffect(() => {
+        // 이전에 저장된 'watched' 키의 값을 가져와서 배열로 변환
+        let watchedList = localStorage.getItem('watched');
+        watchedList = JSON.parse(watchedList);
+
+        // 새로운 값을 배열에 추가
+        watchedList.push(foundProduct.id + 1);
+
+        //Set 중복을 없앤 arr
+        watchedList = new Set(watchedList);
+        // 다시 array 로 변환
+        watchedList = Array.from(watchedList);
+
+        // 변경된 배열을 다시 localStorage에 저장
+        localStorage.setItem('watched', JSON.stringify(watchedList))
+
+        // 의존성 배열에 foundProduct.id를 추가하여 foundProduct.id가 변경될 때에만 useEffect가 실행되도록 함
+    }, [])
+
+    useEffect(() => {
+        let timer = setTimeout(() => { setDetailFade('detailEnd') }, 100);
 
         return () => {
             clearTimeout(timer);
@@ -62,6 +86,8 @@ const Detail = (props) => {
     }, [num])
 
     return (
+        
+        
         <div className={`start container ${detailFade}`} >
             <div className="container">
 
@@ -73,6 +99,7 @@ const Detail = (props) => {
                         : null
                 }
                 {/* <button onClick={()=>{setCount(count+1)}}>btn</button> */}
+                
 
                 <div className="row">
                     <div className="col-md-6 col-sm-12 d-flex flex-column justify-content-center align-items-center">
@@ -90,7 +117,9 @@ const Detail = (props) => {
                         <h4 className="pt-5">{foundProduct.title}</h4>
                         <p>{foundProduct.content}</p>
                         <p>{foundProduct.price}</p>
-                        <button className="btn btn-danger">Add to Cart</button>
+                        <button className="btn btn-danger" onClick={() => {
+                            dispatch(addItem({ id: productId, name: foundProduct.title , count: 1 }));
+                        }}>Add to Cart</button> <input type="number" />
                         {/* 
         <Box>                    
             <YellowBtn bg = "blue">Button</YellowBtn> 
@@ -136,8 +165,8 @@ const Detail = (props) => {
 // }   
 
 
-function TabContent({ tab, shoes}) {
-    let {stock} = useContext(Context1)
+function TabContent({ tab, shoes }) {
+    let { stock } = useContext(Context1)
     let [fade, setFade] = useState('')
     useEffect(() => {
         let a = setTimeout(() => { setFade('end') }, 100);

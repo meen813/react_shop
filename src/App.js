@@ -1,6 +1,6 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Container, Navbar, Nav, Row, Col } from 'react-bootstrap';
+import { Button, Container, Navbar, Nav, Row, Col, Modal } from 'react-bootstrap';
 import { createContext, useState, useEffect } from 'react';
 import data from './data.js';
 import { Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
@@ -8,11 +8,25 @@ import Detail from './components/Detail';
 import Cart from './components/Cart';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useQuery } from 'react-query';
+
 
 //Context API 
 export let Context1 = createContext()
 
 function App() {
+
+  // localStorage에서 watched 데이터 가져오기
+    let storedWatched = JSON.parse(localStorage.getItem('watched'));
+
+    useEffect(() => {
+      if (storedWatched === null) {
+        localStorage.setItem('watched', JSON.stringify([]));
+      }
+    }, []);
+    
+
+
   let [shoes, setShoes] = useState(data)
   let [image, setImage] = useState([
     "/img/shoes1.jpg",
@@ -32,16 +46,22 @@ function App() {
 
   let navigate = useNavigate();
 
-  const sortProductsAlphabetically = () => {
-    const sortedShoes = [...shoes].sort((a, b) => a.title.localeCompare(b.title));
-    setShoes(sortedShoes);
-  }
+  // const sortProductsAlphabetically = () => {
+  //   const sortedShoes = [...shoes].sort((a, b) => a.title.localeCompare(b.title));
+  //   setShoes(sortedShoes);
+  // }
 
-
+  let result = useQuery('작명', ()=>
+    axios.get('https://codingapple1.github.io/userdata.json').then((a)=>{
+      console.log('요청됨')
+      return a.data
+    }),
+    { staleTime : 2000 }
+  )
+  
 
   return (
     <div className="App">
-
       <Navbar bg="light" variant="light" className=''>
         <Container>
           <Navbar.Brand href="#home">ShoeShop</Navbar.Brand>
@@ -50,7 +70,12 @@ function App() {
             <Nav.Link onClick={() => { navigate('/cart') }}>Cart</Nav.Link>
             <Nav.Link onClick={() => { navigate('/detail/0') }}>Detail</Nav.Link>
             <Nav.Link onClick={() => { navigate('/event/one') }}>Event</Nav.Link>
-            <Button variant="outline-primary" onClick={sortProductsAlphabetically}>Alphabetically Sort</Button>{' '}
+            {/* <Button variant="outline-primary" onClick={sortProductsAlphabetically}>Alphabetically Sort</Button>{' '} */}
+          </Nav>
+          <Nav className='ms-auto'>
+            { result.isLoading && '로딩중' }
+            { result.error && '에러남' }
+            { result.data && result.data.name }
           </Nav>
         </Container>
       </Navbar>
@@ -59,7 +84,19 @@ function App() {
       {/* <Link to="/">Home</Link> <br></br>
       <Link to="/detail">Detail</Link>       */}
 
-      <div className='main-bg'></div>
+      <div className='main-bg'>
+        <div className='watchedList'>
+          <p>watched list</p>
+            {storedWatched !== null
+              ? storedWatched.map((a, index)=> {
+                return (
+    
+                    <div key={index}>{storedWatched[index]} </div>
+                  
+                )
+              }): null}
+        </div>
+      </div>
 
       <Routes>
         <Route path="/" element={<div>
@@ -115,6 +152,7 @@ function App() {
               {loading ? <img src="/img/loading_2.gif" width="50px" height="50px" style={{ border: "transparent" }} /> : "button"}
             </button>
           </Container>
+          <Outlet />
         </div>} />
 
         <Route path="/detail/:id" element={
@@ -152,9 +190,17 @@ function App() {
 }
 
 function Product(props) {
+
+  const navigate = useNavigate();
+  // 이미지 클릭 시 detail 페이지로 이동하는 함수
+  const handleImageClick = () => {
+    // 이미지 클릭 시 '/detail/:id' 경로로 이동
+    navigate(`/detail/${props.shoes.id}`);
+  }
   return (
+
     <div className='product'>
-      <img src={props.image} width="80%" />
+      <img src={props.image} width="80%" onClick={handleImageClick} /> {/* 이미지 클릭 이벤트 추가 */}
       <h4>{props.shoes.title}</h4>
       <h5>{props.shoes.content}</h5>
       <p>{props.shoes.price}</p>

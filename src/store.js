@@ -5,7 +5,7 @@ import cartContent from './store/cartContent'
 
 export let {changeName, increaseAge} = user.actions
 
-export let { addCount } = cartContent.actions;
+export let { addCount, addItem, deleteItem} = cartContent.actions;
 
 
 let stock = createSlice({

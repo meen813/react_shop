@@ -15,6 +15,20 @@ let cartContent = createSlice({
             if(product) {
                 product.count += 1;
             }
+        },
+        addItem(state, action){
+            const{ id } = action.payload;
+            const productIndex = state.findIndex(item => item.id === id);
+            if(productIndex !== -1){
+                state[productIndex].count += 1;
+            } else {
+                state.push(action.payload)
+            }
+
+        },
+        deleteItem(state, action){
+            const{ id } = action.payload;
+            return state.filter(item => item.id !== id);
         }
     }
 })  

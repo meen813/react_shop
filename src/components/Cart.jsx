@@ -2,7 +2,7 @@ import React from "react";
 import { useContext, useEffect, useState,  } from "react";
 import { Button, Container, Navbar, Nav, Row, Col, Table } from 'react-bootstrap';
 import { configureStore, useSelector, useDispatch } from "react-redux/es/exports";
-import { addCount, changeName, increaseAge } from "./../store.js"
+import { addCount, deleteItem, changeName, increaseAge } from "./../store.js"
 
 const Cart = (props) => {
 
@@ -33,12 +33,16 @@ const Cart = (props) => {
                             <td>{state.cartContent[index].name}</td>
                             <td>{state.cartContent[index].count}</td>
                             <td>
-                                <button onClick={()=>{
-                                        dispatch(addCount({id: product.id}))
-                                        
-                                }}>
-                                    add
-                                </button>
+                                <div className="button-group">
+                                    <button onClick={() => {
+                                        dispatch(addCount({ id: product.id }))
+                                    }}>
+                                        Add
+                                    </button>
+                                    <button onClick={()=>{
+                                        dispatch(deleteItem({id: product.id}))
+                                    }}>Delete</button>
+                                </div>
                             </td>
                         </tr>
                     ))}
