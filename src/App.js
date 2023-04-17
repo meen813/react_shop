@@ -1,18 +1,24 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Button, Container, Navbar, Nav, Row, Col, Modal } from 'react-bootstrap';
-import { createContext, useState, useEffect } from 'react';
+import { Button, Container, Navbar, Nav, Row, Col, Modal, Card } from 'react-bootstrap';
+import { createContext, useState, useEffect, lazy, Suspense, useTransition } from 'react';
 import data from './data.js';
 import { Routes, Route, Link, useNavigate, Outlet } from 'react-router-dom';
-import Detail from './components/Detail';
-import Cart from './components/Cart';
 import styled from 'styled-components';
 import axios from 'axios';
 import { useQuery } from 'react-query';
+import Weather from './components/Weather';
 
+// import Detail from './components/Detail';
+// import Cart from './components/Cart';
 
 //Context API 
 export let Context1 = createContext()
+
+
+// lazy 
+const Detail = lazy(() => import('./components/Detail'))
+const Cart = lazy(() => import('./components/Cart'))
 
 function App() {
 
@@ -59,12 +65,45 @@ function App() {
     { staleTime : 2000 }
   )
   
+  let [name, setName] = useState('')
+  let [isPending, startTransition] = useTransition()
+
+  let a = new Array(10000).fill(0)
+
+
+  let [count, setCount] = useState(0);
+  let [age, setAge] = useState(20);
+
+  useEffect(()=> {
+    if(count != 0 && count < 3){
+      setAge(age + 1);
+    }
+  },[count])
 
   return (
     <div className="App">
+
+      <div>
+        <div>안녕하십니까 전 {age}</div>
+        <button onClick={()=>{
+          setCount(count + 1);
+          }}>누르면한살먹기</button>
+      </div>
       <Navbar bg="light" variant="light" className=''>
         <Container>
           <Navbar.Brand href="#home">ShoeShop</Navbar.Brand>
+          <Nav>
+            <input onChange={(e)=>{
+              startTransition(()=>{
+                setName(e.target.value)
+              })}}></input>
+            {
+              isPending ? 'Now Loading' :
+              a.map(()=>{
+                return <div>{name}</div>
+              })
+            }
+          </Nav>
           <Nav className="me-auto">
             <Nav.Link onClick={() => { navigate('/') }}>Home</Nav.Link>
             <Nav.Link onClick={() => { navigate('/cart') }}>Cart</Nav.Link>
@@ -72,10 +111,14 @@ function App() {
             <Nav.Link onClick={() => { navigate('/event/one') }}>Event</Nav.Link>
             {/* <Button variant="outline-primary" onClick={sortProductsAlphabetically}>Alphabetically Sort</Button>{' '} */}
           </Nav>
-          <Nav className='ms-auto'>
+          {/* <Nav className='ms-auto'>
             { result.isLoading && '로딩중' }
             { result.error && '에러남' }
             { result.data && result.data.name }
+          </Nav> */}
+          <Nav>
+              <Weather>
+              </Weather>
           </Nav>
         </Container>
       </Navbar>
@@ -98,6 +141,8 @@ function App() {
         </div>
       </div>
 
+
+      <Suspense fallback={<div>Now Loading</div>}>
       <Routes>
         <Route path="/" element={<div>
           <Container>
@@ -155,32 +200,31 @@ function App() {
           <Outlet />
         </div>} />
 
-        <Route path="/detail/:id" element={
-          <Context1.Provider value={{ stock, shoes }}>
-            <Detail image={image} shoes={shoes} />
-          </Context1.Provider>
-        } />
+          <Route path="/detail/:id" element={
+            <Context1.Provider value={{ stock, shoes }}>
+              <Detail image={image} shoes={shoes} />
+            </Context1.Provider>
+          } />
 
-        <Route path="/cart" element={
-          <Cart/>
-        }/>
+          <Route path="/cart" element={
+            <Cart />
+          } />
 
-        {/* nested routes */}
-        <Route path="/about" element={<About />}>
-          <Route path="member" element={<div>members</div>} />
-          <Route path="location" element={<div>company location</div>} />
-        </Route>
+          {/* nested routes */}
+          <Route path="/about" element={<About />}>
+            <Route path="member" element={<div>members</div>} />
+            <Route path="location" element={<div>company location</div>} />
+          </Route>
 
-        <Route path="/event" element={<EventPage />}>
-          <Route path="one" element={<p>Buy One Get One Free On Your First Order</p>} />
-          <Route path="two" element={<p>30% Off Coupon On Your Birthday!</p>} />
-        </Route>
+          <Route path="/event" element={<EventPage />}>
+            <Route path="one" element={<p>Buy One Get One Free On Your First Order</p>} />
+            <Route path="two" element={<p>30% Off Coupon On Your Birthday!</p>} />
+          </Route>
 
 
-        <Route path="/*" element={<div>Page Does Not Exist</div>} />
+          <Route path="/*" element={<div>Page Does Not Exist</div>} />
       </Routes>
-
-
+  </Suspense>
 
       {/* 서버로 데이터 전송 POST 요청 예시*/}
       {/* axios.POST('/address', {name: "Nice"}) */}

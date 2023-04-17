@@ -42,7 +42,7 @@ const Detail = (props) => {
         watchedList = JSON.parse(watchedList);
 
         // 새로운 값을 배열에 추가
-        watchedList.push(foundProduct.id + 1);
+        watchedList.push(foundProduct.title);
 
         //Set 중복을 없앤 arr
         watchedList = new Set(watchedList);
@@ -51,8 +51,6 @@ const Detail = (props) => {
 
         // 변경된 배열을 다시 localStorage에 저장
         localStorage.setItem('watched', JSON.stringify(watchedList))
-
-        // 의존성 배열에 foundProduct.id를 추가하여 foundProduct.id가 변경될 때에만 useEffect가 실행되도록 함
     }, [])
 
     useEffect(() => {
